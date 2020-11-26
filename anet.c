@@ -227,6 +227,7 @@ static int anetCreateSocket(char *err, int domain) {
 #define ANET_CONNECT_NONE 0
 #define ANET_CONNECT_NONBLOCK 1
 #define ANET_CONNECT_BE_BINDING 2 /* Best effort binding. */
+
 static int anetTcpGenericConnect(char *err, char *addr, int port, char *source_addr, int flags) {
     int s = ANET_ERR, rv;
     char portstr[6];  /* strlen("65535") + 1; */
@@ -292,13 +293,13 @@ static int anetTcpGenericConnect(char *err, char *addr, int port, char *source_a
         anetSetError(err, "creating socket: %s", strerror(errno));
     }
 
-error:
+    error:
     if (s != ANET_ERR) {
         close(s);
         s = ANET_ERR;
     }
 
-end:
+    end:
     freeaddrinfo(servinfo);
 
     /* Handle best effort binding: if a binding address was used, but it is
@@ -310,6 +311,9 @@ end:
     }
 }
 
+/*
+ * 返回连接的文件描述符
+ */
 int anetTcpConnect(char *err, char *addr, int port) {
     return anetTcpGenericConnect(err, addr, port, NULL, ANET_CONNECT_NONE);
 }
@@ -382,6 +386,7 @@ int anetRead(int fd, char *buf, int count) {
 /* Like write(2) but make sure 'count' is written before to return
  * (unless error is encountered) */
 int anetWrite(int fd, char *buf, int count) {
+    // c语言里不赋初值的话是随机值
     int nwritten, totlen = 0;
     while (totlen != count) {
         nwritten = write(fd, buf, count - totlen);
@@ -461,10 +466,10 @@ static int _anetTcpServer(char *err, int port, char *bindaddr, int af, int backl
         goto error;
     }
 
-error:
+    error:
     s = ANET_ERR;
 
-end:
+    end:
     freeaddrinfo(servinfo);
 
     return s;
@@ -605,7 +610,7 @@ static int anetPeerToString(int fd, char *ip, socklen_t ip_len, int *port) {
 
     return 0;
 
-error:
+    error:
     if (ip) {
         if (ip_len >= 2) {
             ip[0] = '?';

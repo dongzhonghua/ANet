@@ -32,43 +32,43 @@ typedef void aeEventFinalizerProc(struct aeEventLoop *eventLoop, void *clientDat
 
 typedef void aeBeforeSleepProc(struct aeEventLoop *eventLoop);
 
-/* File event structure */
+/* File event structure  事件结构体*/
 typedef struct aeFileEvent {
-    int mask;       /* one of AE_(READABLE|WRITABLE) */
-    aeFileProc *rfileProc;
-    aeFileProc *wfileProc;
-    void *clientData;
+    int mask;                /* 事件码：可读/可写 */
+    aeFileProc *rfileProc;   /* 读事件的处理函数*/
+    aeFileProc *wfileProc;   /* 写事件的处理函数*/
+    void *clientData;        /* 用于传递server和client实例给相应函数*/
 } aeFileEvent;
 
-/* Time event structure */
+/* Time event structure  定时事件结构体*/
 typedef struct aeTimeEvent {
-    long long id;       /* time event identifier. */
-    long when_sec;      /* seconds */
-    long when_ms;       /* milliseconds */
-    aeTimeProc *timeProc;
+    long long id;              /* 定时事件id */
+    long when_sec;             /* 秒 */
+    long when_ms;              /* 毫秒 */
+    aeTimeProc *timeProc;      /* 定时事件处理程序*/
     aeEventFinalizerProc *finalizerProc;
-    void *clientData;
-    struct aeTimeEvent *next;
+    void *clientData;          /* 用于传递server和client实例给相应函数*/
+    struct aeTimeEvent *next;  /* 下一个节点 */
 } aeTimeEvent;
 
-/* A fired event */
+/* A fired event  发生了事件的结构体*/
 typedef struct aeFiredEvent {
-    int fd;
-    int mask;
+    int fd;                   /* fd */
+    int mask;                 /* 发生事件的掩码 （读/写）*/
 } aeFiredEvent;
 
 /* State of an event based program */
 typedef struct aeEventLoop {
-    int maxfd;                  /* highest file descriptor currently registered */
-    int setsize;                /* max number of file descriptors tracked */
-    long long timeEventNextId;
-    time_t lastTime;            /* Used to detect system clock skew */
-    aeFileEvent *events;        /* Registered events */
-    aeFiredEvent *fired;        /* Fired events */
-    aeTimeEvent *timeEventHead;
-    int stop;
-    void *apidata;              /* This is used for polling API specific data */
-    aeBeforeSleepProc *beforesleep;
+    int maxfd;                  /* 当前注册的最大文件描述符 */
+    int setsize;                /* 监控的最大文件描述符数 */
+    long long timeEventNextId;  /* 定时事件ID */
+    time_t lastTime;            /* 最近一次处理定时事件的时间 */
+    aeFileEvent *events;        /* 注册事件链表 */
+    aeFiredEvent *fired;        /* 发生事件链表 */
+    aeTimeEvent *timeEventHead; /* 定时事件链表*/
+    int stop;                   /* 是否停止循环*/
+    void *apidata;              /* 特定接口的特定数据*/
+    aeBeforeSleepProc *beforesleep; /*在sleep之前执行的程序*/
 } aeEventLoop;
 
 aeEventLoop *aeCreateEventLoop(int setsize);

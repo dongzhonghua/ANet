@@ -8,3 +8,5 @@ set(SOURCE_FILES ae.c anet.c protocol.c buffer.c)
 add_executable(server server.c ${SOURCE_FILES})
 
 add_executable(server_test server_test.c ${SOURCE_FILES})
+
+add_executable(test test/test.c ${SOURCE_FILES})

@@ -15,36 +15,36 @@
 aeEventLoop *aeCreateEventLoop(int setsize) {
     aeEventLoop *eventLoop;
 
-    if ((eventLoop = zmalloc(sizeof(*eventLoop))) == NULL) {
+    if ((eventLoop = zmalloc(sizeof(*eventLoop))) == NULL) {    //给eventLoop申请空间
         goto err;
     }
 
-    eventLoop->events = zmalloc(sizeof(aeFileEvent) * setsize);
-    eventLoop->fired = zmalloc(sizeof(aeFiredEvent) * setsize);
+    eventLoop->events = zmalloc(sizeof(aeFileEvent) * setsize); //给events链表申请空间
+    eventLoop->fired = zmalloc(sizeof(aeFiredEvent) * setsize); //给fired链表申请空间
     if (eventLoop->events == NULL || eventLoop->fired == NULL) {
         goto err;
     }
 
-    eventLoop->setsize = setsize;
-    eventLoop->lastTime = time(NULL);
-    eventLoop->timeEventHead = NULL;
-    eventLoop->timeEventNextId = 0;
-    eventLoop->stop = 0;
-    eventLoop->maxfd = -1;
-    eventLoop->beforesleep = NULL;
+    eventLoop->setsize = setsize;           //设置大小
+    eventLoop->lastTime = time(NULL);       //设置lastTime=now
+    eventLoop->timeEventHead = NULL;        //定时事件链表置空
+    eventLoop->timeEventNextId = 0;         //定时事件的id为0
+    eventLoop->stop = 0;                    //stop为0
+    eventLoop->maxfd = -1;                  //最大文件描述符为0
+    eventLoop->beforesleep = NULL;          //beforesleep设置为NULL
 
-    if (aeApiCreate(eventLoop) == -1) {
+    if (aeApiCreate(eventLoop) == -1) {     //给EPOLL申请空间
         goto err;
     }
 
     /* Events with mask == AE_NONE are not set. So let's initialize the vector with it. */
     for (int i = 0; i < setsize; i++) {
-        eventLoop->events[i].mask = AE_NONE;
+        eventLoop->events[i].mask = AE_NONE; //将每一个fd的事件初始化为0
     }
 
     return eventLoop;
 
-err:
+    err:
     if (eventLoop) {
         zfree(eventLoop->events);
         zfree(eventLoop->fired);
@@ -107,24 +107,24 @@ int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask, aeFileProc *proc
         errno = ERANGE;
         return AE_ERR;
     }
-    aeFileEvent *fe = &eventLoop->events[fd];
+    aeFileEvent *fe = &eventLoop->events[fd];  //利用fe指向eventLoop->events[listen_fd]
 
-    if (aeApiAddEvent(eventLoop, fd, mask) == -1) {
+    if (aeApiAddEvent(eventLoop, fd, mask) == -1) { //本质是调用epoll_ctl(epfd,EPOLL_CTL_ADD,fd,...);
         return AE_ERR;
     }
 
-    fe->mask |= mask;
+    fe->mask |= mask;                          //如果fe->mask之前不是空，现在就相当于同时监控两个事件
     if (mask & AE_READABLE) {
-        fe->rfileProc = proc;
+        fe->rfileProc = proc;                  //说明proc是读操作的处理函数
     }
 
     if (mask & AE_WRITABLE) {
-        fe->wfileProc = proc;
+        fe->wfileProc = proc;                  //说明proc是写操作的处理函数
     }
 
-    fe->clientData = clientData;
+    fe->clientData = clientData;               //让它们指向同一个client或者server实例
     if (fd > eventLoop->maxfd) {
-        eventLoop->maxfd = fd;
+        eventLoop->maxfd = fd;                 //如果新的fd大于maxfd，则更新maxfd
     }
 
     return AE_OK;
@@ -452,12 +452,12 @@ int aeWait(int fd, int mask, long long milliseconds) {
 }
 
 void aeMain(aeEventLoop *eventLoop) {
-    eventLoop->stop = 0;
-    while (!eventLoop->stop) {
+    eventLoop->stop = 0;                         //设置停止标志为0，表示不停止
+    while (!eventLoop->stop) {                   //如果没有被设置为1
         if (eventLoop->beforesleep) {
             eventLoop->beforesleep(eventLoop);
         }
-        aeProcessEvents(eventLoop, AE_ALL_EVENTS);
+        aeProcessEvents(eventLoop, AE_ALL_EVENTS); //整个事件处理核心函数，实际上就再不断轮询这个函数
     }
 }
 

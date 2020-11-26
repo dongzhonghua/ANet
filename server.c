@@ -27,9 +27,9 @@ client_t *alloc_client()
 
 err:
     if (client) {
-        zfree(client->read_buffer);
-        zfree(client->write_buffer);
-        zfree(client);
+        zfree(client->read_buffer)
+        zfree(client->write_buffer)
+        zfree(client)
     }
 
     return NULL;
@@ -43,9 +43,9 @@ void free_client(client_t *client)
             aeDeleteFileEvent(client->loop, client->fd, AE_WRITABLE);
             close(client->fd);
         }
-        zfree(client->read_buffer);
-        zfree(client->write_buffer);
-        zfree(client);
+        zfree(client->read_buffer)
+        zfree(client->write_buffer)
+        zfree(client)
     }
 }
 
@@ -173,14 +173,18 @@ static void acceptTcpHandler(aeEventLoop *loop, int fd, void *data, int mask)
 void init_server(server_t *server)
 {
     server->loop = aeCreateEventLoop(server->max_client_count);
+    /* 为loop中各类数据结构申请空间 */
 
     //aeCreateTimeEvent(loop, 1000, serverCron, NULL, NULL);
 
     server->listen_fd = anetTcpServer(server->err_info, server->port, NULL, server->backlog);
+    /* 创建listen_fd 实际上调用socket函数 */
+
     if (server->listen_fd != ANET_ERR) {
-        anetNonBlock(server->err_info, server->listen_fd);
+        anetNonBlock(server->err_info, server->listen_fd);  /*设置非阻塞*/
     }
 
+    /*将 listen_fd 注册到epoll的实例上，事件处理函数为acceptTcpHandler*/
     if (aeCreateFileEvent(server->loop, server->listen_fd, AE_READABLE, acceptTcpHandler, server) != AE_ERR) {
         char conn_info[64];
         anetFormatSock(server->listen_fd, conn_info, sizeof(conn_info));
@@ -188,25 +192,28 @@ void init_server(server_t *server)
     }
 }
 
+
 void wait_server(server_t *server)
 {
-    aeMain(server->loop);
-    aeDeleteEventLoop(server->loop);
+    aeMain(server->loop);     //是一个while循环，不断循环处理
+    aeDeleteEventLoop(server->loop); //如果出了循环，就删除loop
 }
 
 int main()
 {
     // TODO, use sigaction or signalfd
     signal(SIGPIPE, SIG_IGN);
-    server_t server;
+    //忽略SIGPIPE信号，防止给一个已经关闭socket的客户端连续两次发送数据导致SIGPIPE信号
+    //的产生，它的默认做法是终止进程。
+    server_t server; //创建一个server
     bzero(&server, sizeof(server));
 
-    server.backlog = DEFAULT_LISTEN_BACKLOG;
-    server.max_client_count = DEFAULT_MAX_CLIENT_COUNT;
-    server.port = DEFAULT_LISTEN_PORT;
+    server.backlog = DEFAULT_LISTEN_BACKLOG; //设置backlog的大小
+    server.max_client_count = DEFAULT_MAX_CLIENT_COUNT; //设置最大的客户端连接数
+    server.port = DEFAULT_LISTEN_PORT; //设置默认的监听端口
 
     init_server(&server);
-    wait_server(&server);
+    wait_server(&server); //实际上进入了loop循环
 
     return 0;
 }

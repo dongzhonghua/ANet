@@ -7,12 +7,12 @@
 #include "buffer.h"
 
 typedef struct {
-    aeEventLoop *loop;
-    int listen_fd;
-    int port;
-    int backlog;
-    int max_client_count;
-    char err_info[ANET_ERR_LEN];
+    aeEventLoop *loop;           //整个事件循环的结构体
+    int listen_fd;               //监听fd，socket函数返回
+    int port;                    //默认的监听端口
+    int backlog;                 //listen函数第二个参数backlog的大小
+    int max_client_count;        //最大的客户端连接数
+    char err_info[ANET_ERR_LEN]; //err信息
 } server_t;
 
 typedef struct {
