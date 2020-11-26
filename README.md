@@ -27,3 +27,8 @@ Redis网络模型是一个使用**IO多路复用**、**单线程**、**非阻塞
 |protocol.c  protocol.h|自行定义协议|
 |define.h|一些常量，比如listen的backlog大小|
 |server.c  server_test.c|自定义的服务端和客户端程序|
+
+
+https://blog.csdn.net/yangbodong22011/article/details/65444273
+https://blog.csdn.net/yangbodong22011/article/details/65446143
+https://blog.csdn.net/yangbodong22011/article/details/65448514

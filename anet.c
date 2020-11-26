@@ -385,6 +385,9 @@ int anetRead(int fd, char *buf, int count) {
 
 /* Like write(2) but make sure 'count' is written before to return
  * (unless error is encountered) */
+// write的返回值大于0,表示写了部分或者是全部的数据.
+// 这样我们用一个while循环来不停的写入，但是循环过程中的buf参数和nbyte参数得由我们来更新。
+// 也就是说，网络写函数是不负责将全部数据写完之后在返回的。
 int anetWrite(int fd, char *buf, int count) {
     // c语言里不赋初值的话是随机值
     int nwritten, totlen = 0;

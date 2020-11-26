@@ -9,4 +9,6 @@ add_executable(server server.c ${SOURCE_FILES})
 
 add_executable(server_test server_test.c ${SOURCE_FILES})
 
-add_executable(test test/test.c ${SOURCE_FILES})
+add_executable(socket_client test/socket_client.c ${SOURCE_FILES})
+
+add_executable(socket_server test/socket_server.c ${SOURCE_FILES})
